@@ -1,0 +1,105 @@
+---
+title: "tidy1"
+author: "bookavatar"
+date: "10/9/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+#load libraries
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(gganimate)
+library(tidyr)
+library(tidyverse)
+```
+
+```{r include=FALSE}
+#Download file into directory and read file into R
+rstats_tweets <- readRDS("~/rstats_tweets.rds")
+#select various columns to work with in this analysis
+rtweets = rstats_tweets %>%
+  select("user_id","created_at","screen_name","text","display_text_width",
+         "favorite_count","retweet_count","hashtags","urls_t.co",
+         "urls_expanded_url","lang", "place_full_name","place_type",
+         "country", "country_code","geo_coords","coords_coords", "name",
+         "location","url","protected","followers_count","favourites_count",
+         "verified")
+```
+
+```{r}
+#Group by unique user name and create columns for total favorites and retweets
+d_rtweets = rtweets %>%
+  group_by(screen_name) %>% summarize(favorite = sum(favorite_count),
+                                      retweet = sum(retweet_count),
+                                      location = sample(country,1),
+                                      mean_fav = mean(favorite_count),
+                                      mean_rtw = mean(retweet_count))%>%
+  filter(favorite > 0 & retweet > 0 & !is.na(location))%>%
+  arrange(desc(favorite)) %>% group_by(location)
+```
+
+```{r}
+##Create ggplot of favorites versus retweets and fill by location
+#create map of names countries
+active_map <- map_data("world",region = c("Canada","France","Uruguay","Switzerland","United States","Australia",
+  "The Netherlands","United Kingdom", "South Africa", "Guatemala",
+  "Denmark","Nigeria","Germany","Egypt","New Zealand","Brazil",
+  "USA",
+  "Sweden","Belgium","Colombia","New Caledonia","Spain","Austria",
+  "Russia","Chile","Italy","Republic of Serbia","Argentina","Norway",
+  "Mexico","Rwanda","Luxembourg","Iceland","Georgia","India","Ireland",
+  "Tunisia","Montenegro","Bangladesh","Singapore","Hungary","Finland",
+  "Poland","Togo","Fiji", "Thailand","Republic of Korea","Jamaica",
+  "Malaysia", "Ukraine","Turkey","Kenya","Portugal","Ecuador",
+  "Czech Republic","Zimbabwe","Greece","Venezuela","Nicaragua" ))
+
+# Compute the centroid as the mean longitude and latitude
+# Used as label coordinate for country's names
+region.data <- active_map %>%
+  group_by(region) %>%
+  summarise(long = mean(long), lat = mean(lat))
+
+```
+
+```{r}
+#Visualize map
+ggplot(active_map, aes(x = long, y = lat)) +
+  geom_polygon(aes( group = group, fill = region))+
+  geom_text(aes(label = region), data = region.data,  size = 2, hjust = 0.5)+
+  theme_void()+
+  theme(legend.position = "none")
+
+```
+
+```{r}
+#Group by country, total number of favorites, and retweets, clean
+e_rtweets = d_rtweets %>%
+  group_by(location) %>% summarize(favorite = sum(favorite),
+                                   retweet = sum(retweet),
+                                   mean_fav = mean(mean_fav),
+                                   mean_rtw = mean(mean_rtw)) %>%
+  mutate(region = location) %>%
+  filter(location!="")
+```
+
+```{r}
+#Visualize Map
+#Join data
+grad_map <- left_join(active_map,e_rtweets, by = "region")
+#Map 2
+ggplot(grad_map, aes(x = long, y = lat)) +
+  geom_polygon(aes( group = group, fill = mean_fav))+
+  geom_text(aes(label = region), data = region.data,  size = 2, hjust = 0.5)+
+    scale_fill_viridis_c(option = "C")+
+  theme_void()+
+  theme(legend.position = "left")
+```
+
+
