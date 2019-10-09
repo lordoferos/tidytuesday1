@@ -3,4 +3,5 @@ Data for this week comes from Mike Kearney - author of the awesome rtweet packag
 
 Working on plotting some maps
 
+![alt text](https://github.com/lordoferos/tidytuesday1/blob/master/tidy1_1.png)
 
