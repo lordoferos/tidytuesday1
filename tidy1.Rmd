@@ -23,6 +23,7 @@ library(tidyverse)
 ```{r include=FALSE}
 #Download file into directory and read file into R
 rstats_tweets <- readRDS("~/rstats_tweets.rds")
+
 #select various columns to work with in this analysis
 rtweets = rstats_tweets %>%
   select("user_id","created_at","screen_name","text","display_text_width",
