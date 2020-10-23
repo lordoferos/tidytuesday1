@@ -12,8 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r include=FALSE}
 #load libraries
 library(readr)
-library(dplyr)
-library(ggplot2)
 library(lubridate)
 library(gganimate)
 library(tidyr)
@@ -34,7 +32,7 @@ rtweets = rstats_tweets %>%
          "verified")
 ```
 
-```{r}
+```{r uniqueUsernames}
 #Group by unique user name and create columns for total favorites and retweets
 d_rtweets = rtweets %>%
   group_by(screen_name) %>% summarize(favorite = sum(favorite_count),
@@ -42,11 +40,11 @@ d_rtweets = rtweets %>%
                                       location = sample(country,1),
                                       mean_fav = mean(favorite_count),
                                       mean_rtw = mean(retweet_count))%>%
-  filter(favorite > 0 & retweet > 0 & !is.na(location))%>%
+  filter(favorite > 0 & retweet > 0 & !is.na(location)) %>%
   arrange(desc(favorite)) %>% group_by(location)
 ```
 
-```{r}
+```{r mapcountries}
 ##Create ggplot of favorites versus retweets and fill by location
 #create map of names countries
 active_map <- map_data("world",region = c("Canada","France","Uruguay","Switzerland","United States","Australia",
@@ -69,7 +67,7 @@ region.data <- active_map %>%
 
 ```
 
-```{r}
+```{r visualizeMap}
 #Visualize map
 ggplot(active_map, aes(x = long, y = lat)) +
   geom_polygon(aes( group = group, fill = region))+
@@ -79,7 +77,7 @@ ggplot(active_map, aes(x = long, y = lat)) +
 
 ```
 
-```{r}
+```{r wrangleData}
 #Group by country, total number of favorites, and retweets, clean
 e_rtweets = d_rtweets %>%
   group_by(location) %>% summarize(favorite = sum(favorite),
@@ -102,5 +100,3 @@ ggplot(grad_map, aes(x = long, y = lat)) +
   theme_void()+
   theme(legend.position = "left")
 ```
-
-
